@@ -9,6 +9,7 @@ interface HistogramPanelProps {
   exif: ExifMetadata;
   showClippingOverlay: boolean;
   onToggleClippingOverlay: () => void;
+  compact?: boolean;
 }
 
 function buildAreaPath(bins: number[], w: number, h: number): string {
@@ -31,9 +32,10 @@ export const HistogramPanel: React.FC<HistogramPanelProps> = ({
   exif,
   showClippingOverlay,
   onToggleClippingOverlay,
+  compact = false,
 }) => {
   const svgW = 240;
-  const svgH = 68;
+  const svgH = compact ? 54 : 68;
 
   const shadowPct = histogram.shadowClipPct ?? 0;
   const highlightPct = histogram.highlightClipPct ?? 0;
@@ -48,7 +50,7 @@ export const HistogramPanel: React.FC<HistogramPanelProps> = ({
   ].filter(Boolean);
 
   return (
-    <div className="border-b border-[#222228] px-4 py-3 space-y-2">
+    <div className={compact ? 'space-y-2' : 'border-b border-white/[0.07] px-4 py-3.5 space-y-2.5'}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-[#A1A1AA]">Histogram</span>
@@ -56,10 +58,10 @@ export const HistogramPanel: React.FC<HistogramPanelProps> = ({
             type="button"
             onClick={onToggleClippingOverlay}
             title="Toggle Shadow (Blue) & Highlight (Red) Clipping Warning (Key: J)"
-            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums border transition-colors cursor-pointer ${
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono tabular-nums border transition-colors cursor-pointer ${
               showClippingOverlay
                 ? 'bg-[#EF4444]/15 border-[#EF4444]/60 text-[#FCA5A5]'
-                : 'bg-[#141418] border-[#26262E] text-[#8E8E98] hover:text-[#E4E4E7]'
+                : 'bg-[#15151C] border-white/[0.08] text-[#8E8E98] hover:text-[#E4E4E7]'
             }`}
           >
             <AlertTriangle className="w-2.5 h-2.5" />
@@ -73,11 +75,15 @@ export const HistogramPanel: React.FC<HistogramPanelProps> = ({
         </span>
       </div>
 
-      <div className="relative bg-[#09090B] border border-[#222228] rounded-md overflow-hidden h-[68px]">
+      <div
+        className={`relative bg-[#08080B] border border-white/[0.07] rounded-xl overflow-hidden ${
+          compact ? 'h-[54px]' : 'h-[68px]'
+        }`}
+      >
         <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-full block" preserveAspectRatio="none">
-          <line x1={svgW * 0.25} y1="0" x2={svgW * 0.25} y2={svgH} stroke="#1D1D22" strokeWidth="1" />
-          <line x1={svgW * 0.5} y1="0" x2={svgW * 0.5} y2={svgH} stroke="#1D1D22" strokeWidth="1" />
-          <line x1={svgW * 0.75} y1="0" x2={svgW * 0.75} y2={svgH} stroke="#1D1D22" strokeWidth="1" />
+          <line x1={svgW * 0.25} y1="0" x2={svgW * 0.25} y2={svgH} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+          <line x1={svgW * 0.5} y1="0" x2={svgW * 0.5} y2={svgH} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+          <line x1={svgW * 0.75} y1="0" x2={svgW * 0.75} y2={svgH} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
 
           {histogram.r.length > 0 && (
             <>
@@ -96,7 +102,7 @@ export const HistogramPanel: React.FC<HistogramPanelProps> = ({
       </div>
 
       {exifParts.length > 0 && (
-        <p className="text-[11px] text-[#71717A] font-mono truncate">
+        <p className="text-[11px] text-[#8E8E98] font-mono truncate">
           {exifParts.join(' · ')}
         </p>
       )}

@@ -9,6 +9,9 @@ import {
   Eraser,
   Upload,
   Eye,
+  ChevronDown,
+  ChevronUp,
+  LayoutGrid,
 } from 'lucide-react';
 import {SAMPLE_PHOTOS, TOOLS_CATALOG} from '../data/presets';
 import {parseCubeLutText} from '../engine/lutParser';
@@ -81,6 +84,9 @@ interface ToolInspectorProps {
   onInvertLayerMask: () => void;
   onClearLayerMask: () => void;
   onInteractionStateChange?: (interacting: boolean) => void;
+  mobileExpanded?: boolean;
+  onToggleMobileExpand?: () => void;
+  onOpenMobileTools?: () => void;
 }
 
 const ASPECT_RATIOS: AspectRatioOption[] = ['free', '1:1', '4:3', '3:2', '16:9', '3:4'];
@@ -184,6 +190,9 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
   onInvertLayerMask,
   onClearLayerMask,
   onInteractionStateChange,
+  mobileExpanded = true,
+  onToggleMobileExpand,
+  onOpenMobileTools,
 }) => {
   const [lutParseError, setLutParseError] = useState<string | null>(null);
 
@@ -199,7 +208,12 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
   };
 
   return (
-    <aside className="w-full lg:w-[318px] max-h-[38vh] lg:max-h-none shrink-0 border-t lg:border-t-0 lg:border-l border-[#222228] bg-[#0E0E11] flex flex-col overflow-hidden">
+    <aside
+      className={`w-full lg:w-[328px] xl:w-[344px] shrink-0 border-t lg:border-t-0 lg:border-l border-white/[0.08] bg-[#0D0D12]/96 lg:bg-[#0C0C10] backdrop-blur-xl lg:backdrop-blur-none flex flex-col overflow-hidden transition-[max-height] duration-200 ${
+        mobileExpanded ? 'max-h-[34vh] lg:max-h-none' : 'max-h-[54px] lg:max-h-none'
+      }`}
+    >
+      {/* Desktop Histogram */}
       <div className="hidden lg:block">
         <HistogramPanel
           histogram={histogram}
@@ -211,17 +225,98 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
         />
       </div>
 
+      {/* Mobile Compact Header Row (Always visible) */}
+      <div className="lg:hidden px-3.5 py-2 flex items-center justify-between gap-2 border-b border-white/[0.06] shrink-0 min-h-[52px]">
+        <div className="flex items-center gap-2 min-w-0">
+          {onToggleMobileExpand && (
+            <button
+              type="button"
+              onClick={onToggleMobileExpand}
+              className="p-1.5 rounded-lg bg-[#171720] border border-white/[0.08] text-[#D4D4DC] cursor-pointer shrink-0"
+              aria-label={mobileExpanded ? 'Collapse adjustments' : 'Expand adjustments'}
+            >
+              {mobileExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronUp className="w-4 h-4" />
+              )}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onToggleMobileExpand}
+            className="text-left min-w-0 cursor-pointer"
+          >
+            <p className="font-display text-xs font-semibold text-[#F4F4F6] truncate">
+              {toolMeta ? toolMeta.name : 'No Active Tool'}
+            </p>
+            <p className="text-[11px] text-[#71717A] truncate">
+              {toolMeta ? toolMeta.shortDesc : 'Tap Tools below to start editing'}
+            </p>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          {onOpenMobileTools && (
+            <button
+              type="button"
+              onClick={onOpenMobileTools}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#171720] border border-white/[0.08] text-[11px] font-medium text-[#E4E4E7] cursor-pointer"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-[#22C55E]" />
+              <span>Tools</span>
+            </button>
+          )}
+          {activeStep && toolMeta && (
+            <>
+              {toolMeta.supportsLayerMask && (
+                <button
+                  type="button"
+                  onClick={onToggleMaskBrushMode}
+                  title="Paint selective layer mask"
+                  className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                    isMaskBrushMode
+                      ? 'bg-[#22C55E] text-[#051B0C]'
+                      : 'text-[#8E8E98] hover:text-[#F4F4F6] hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <Paintbrush className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onResetStep}
+                title="Reset tool parameters"
+                className="p-2 text-[#8E8E98] hover:text-[#F4F4F6] hover:bg-white/[0.06] rounded-lg cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onDeleteStep}
+                title="Remove layer"
+                className="p-2 text-[#8E8E98] hover:text-[#EF4444] hover:bg-white/[0.06] rounded-lg cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Scrollable Parameters Area */}
       <div className="flex-1 overflow-y-auto darkroom-scroll p-3.5 lg:p-4 space-y-4">
         {!activeStep || !toolMeta ? (
           <div className="py-8 text-center space-y-2">
             <p className="text-sm font-medium text-[#D4D4DC]">No Active Tool</p>
             <p className="text-xs text-[#71717A] leading-relaxed">
-              Select any tool from the drawer or pick a Look preset to start editing non-destructively.
+              Select any tool or pick a Look preset to start editing non-destructively.
             </p>
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between border-b border-[#222228] pb-3">
+            {/* Desktop Tool Header */}
+            <div className="hidden lg:flex items-center justify-between border-b border-white/[0.07] pb-3">
               <div className="min-w-0 pr-2">
                 <h2 className="font-display text-sm font-semibold text-[#F4F4F6] truncate">
                   {toolMeta.name}
@@ -233,11 +328,11 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                   <button
                     type="button"
                     onClick={onToggleMaskBrushMode}
-                    title="Paint selective layer mask (Snapseed View Edits Brush)"
-                    className={`p-1.5 rounded transition-colors cursor-pointer ${
+                    title="Paint selective layer mask (View Edits Brush)"
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                       isMaskBrushMode
                         ? 'bg-[#22C55E] text-[#051B0C]'
-                        : 'text-[#8E8E98] hover:text-[#F4F4F6] hover:bg-[#1B1B20]'
+                        : 'text-[#8E8E98] hover:text-[#F4F4F6] hover:bg-white/[0.06]'
                     }`}
                   >
                     <Paintbrush className="w-3.5 h-3.5" />
@@ -247,7 +342,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                   type="button"
                   onClick={onResetStep}
                   title="Reset tool parameters"
-                  className="p-1.5 text-[#8E8E98] hover:text-[#F4F4F6] hover:bg-[#1B1B20] rounded transition-colors cursor-pointer"
+                  className="p-1.5 text-[#8E8E98] hover:text-[#F4F4F6] hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                 </button>
@@ -255,7 +350,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                   type="button"
                   onClick={onDeleteStep}
                   title="Remove layer from Edit Stack"
-                  className="p-1.5 text-[#8E8E98] hover:text-[#EF4444] hover:bg-[#1B1B20] rounded transition-colors cursor-pointer"
+                  className="p-1.5 text-[#8E8E98] hover:text-[#EF4444] hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -264,7 +359,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
 
             {/* Per-Layer Mask Brush Sub-panel */}
             {isMaskBrushMode && toolMeta.supportsLayerMask && (
-              <div className="bg-[#141A16] border border-[#22C55E]/40 rounded-md p-3 space-y-3">
+              <div className="bg-[#121A15] border border-[#22C55E]/40 rounded-xl p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#22C55E]">
                     Layer Mask Brush
@@ -274,10 +369,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                       type="button"
                       onClick={onToggleMaskOverlay}
                       title="Show Rubylith Red Mask Overlay"
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded border cursor-pointer ${
+                      className={`inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-lg border cursor-pointer ${
                         showMaskOverlay
                           ? 'bg-[#EF4444]/20 border-[#EF4444] text-[#EF4444]'
-                          : 'bg-[#18181D] border-[#26262E] text-[#A1A1AA]'
+                          : 'bg-[#181820] border-white/[0.08] text-[#A1A1AA]'
                       }`}
                     >
                       <Eye className="w-3 h-3" />
@@ -286,7 +381,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                     <button
                       type="button"
                       onClick={onToggleMaskBrushMode}
-                      className="text-[11px] text-[#D4D4DC] hover:underline cursor-pointer"
+                      className="text-[11px] font-medium text-[#D4D4DC] hover:underline cursor-pointer"
                     >
                       Done
                     </button>
@@ -297,10 +392,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                   <button
                     type="button"
                     onClick={() => onSetMaskBrushErase(false)}
-                    className={`py-1.5 text-xs font-medium rounded border cursor-pointer ${
+                    className={`py-1.5 text-xs font-medium rounded-lg border cursor-pointer ${
                       !maskBrushErase
                         ? 'bg-[#22C55E]/20 border-[#22C55E] text-[#22C55E]'
-                        : 'bg-[#18181D] border-[#26262E] text-[#D4D4DC]'
+                        : 'bg-[#181820] border-white/[0.08] text-[#D4D4DC]'
                     }`}
                   >
                     Paint Effect
@@ -308,10 +403,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                   <button
                     type="button"
                     onClick={() => onSetMaskBrushErase(true)}
-                    className={`py-1.5 text-xs font-medium rounded border cursor-pointer ${
+                    className={`py-1.5 text-xs font-medium rounded-lg border cursor-pointer ${
                       maskBrushErase
                         ? 'bg-[#EF4444]/20 border-[#EF4444] text-[#EF4444]'
-                        : 'bg-[#18181D] border-[#26262E] text-[#D4D4DC]'
+                        : 'bg-[#181820] border-white/[0.08] text-[#D4D4DC]'
                     }`}
                   >
                     Erase Effect
@@ -347,14 +442,14 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                   <button
                     type="button"
                     onClick={onInvertLayerMask}
-                    className="py-1.5 text-[11px] font-medium bg-[#18181D] hover:bg-[#23232A] border border-[#26262E] text-[#D4D4DC] rounded cursor-pointer"
+                    className="py-1.5 text-[11px] font-medium bg-[#181820] hover:bg-[#23232C] border border-white/[0.08] text-[#D4D4DC] rounded-lg cursor-pointer"
                   >
                     Invert Mask
                   </button>
                   <button
                     type="button"
                     onClick={onClearLayerMask}
-                    className="py-1.5 text-[11px] font-medium bg-[#18181D] hover:bg-[#23232A] border border-[#26262E] text-[#D4D4DC] rounded cursor-pointer"
+                    className="py-1.5 text-[11px] font-medium bg-[#181820] hover:bg-[#23232C] border border-white/[0.08] text-[#D4D4DC] rounded-lg cursor-pointer"
                   >
                     Clear Mask
                   </button>
@@ -370,10 +465,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                   const wb = activeStep.params as WhiteBalanceParams;
                   onUpdateParams({...wb, eyedropperActive: !wb.eyedropperActive});
                 }}
-                className={`w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium rounded border cursor-pointer transition-colors ${
+                className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-medium rounded-xl border cursor-pointer transition-colors ${
                   (activeStep.params as WhiteBalanceParams).eyedropperActive
                     ? 'bg-[#22C55E] border-[#22C55E] text-[#051B0C]'
-                    : 'bg-[#16161B] hover:bg-[#1F1F26] border-[#26262E] text-[#D4D4DC]'
+                    : 'bg-[#15151C] hover:bg-[#1D1D26] border-white/[0.08] text-[#D4D4DC]'
                 }`}
               >
                 <Pipette className="w-3.5 h-3.5" />
@@ -408,10 +503,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         key={m.id}
                         type="button"
                         onClick={() => onUpdateParams({...ep, fillMode: m.id})}
-                        className={`py-1.5 px-2 text-xs font-medium rounded border cursor-pointer ${
+                        className={`py-2 px-2 text-xs font-medium rounded-lg border cursor-pointer ${
                           ep.fillMode === m.id
                             ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                            : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                            : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                         }`}
                       >
                         {m.label}
@@ -424,7 +519,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
 
             {/* Portrait Tool Info */}
             {activeStep.toolId === 'portrait' && (
-              <div className="bg-[#141418] border border-[#222228] rounded-md p-2.5 text-xs text-[#A1A1AA] leading-relaxed">
+              <div className="bg-[#14141B] border border-white/[0.07] rounded-xl p-3 text-xs text-[#A1A1AA] leading-relaxed">
                 Drag the <span className="text-[#22C55E] font-medium">Face Target</span> ring directly onto the subject&apos;s face for skin-aware smoothing &amp; spotlight.
               </div>
             )}
@@ -448,10 +543,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                               setLutParseError(null);
                               onUpdateParams({...lp, preset: lut.id});
                             }}
-                            className={`py-1.5 px-2 text-xs font-medium rounded border cursor-pointer ${
+                            className={`py-2 px-2 text-xs font-medium rounded-lg border cursor-pointer ${
                               lp.preset === lut.id
                                 ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                                : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                                : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                             }`}
                           >
                             {lut.label}
@@ -461,7 +556,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                     </div>
 
                     <div>
-                      <label className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium rounded border border-dashed border-[#34343F] hover:border-[#22C55E] bg-[#141418] text-[#D4D4DC] cursor-pointer transition-colors">
+                      <label className="w-full flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-medium rounded-xl border border-dashed border-white/[0.16] hover:border-[#22C55E] bg-[#14141B] text-[#D4D4DC] cursor-pointer transition-colors">
                         <Upload className="w-3.5 h-3.5 text-[#22C55E]" />
                         <span className="truncate">
                           {lp.preset === 'custom' && lp.customName
@@ -526,10 +621,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                               cropH: 1,
                             })
                           }
-                          className={`py-1.5 text-xs font-medium rounded border transition-colors cursor-pointer uppercase ${
+                          className={`py-2 text-xs font-medium rounded-lg border transition-colors cursor-pointer uppercase ${
                             active
                               ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                              : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC] hover:bg-[#1F1F26]'
+                              : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC] hover:bg-[#1E1E27]'
                           }`}
                         >
                           {ratio}
@@ -549,7 +644,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         rotation90: (crop.rotation90 + 90) % 360,
                       });
                     }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium bg-[#16161B] hover:bg-[#1F1F26] border border-[#26262E] text-[#D4D4DC] rounded cursor-pointer"
+                    className="flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium bg-[#15151C] hover:bg-[#1E1E27] border border-white/[0.08] text-[#D4D4DC] rounded-lg cursor-pointer"
                   >
                     <RotateCw className="w-3.5 h-3.5" />
                     <span>Rotate 90°</span>
@@ -560,10 +655,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                       const crop = activeStep.params as CropParams;
                       onUpdateParams({...crop, flipH: !crop.flipH});
                     }}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium border rounded cursor-pointer ${
+                    className={`flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium border rounded-lg cursor-pointer ${
                       (activeStep.params as CropParams).flipH
                         ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                        : 'bg-[#16161B] hover:bg-[#1F1F26] border-[#26262E] text-[#D4D4DC]'
+                        : 'bg-[#15151C] hover:bg-[#1E1E27] border-white/[0.08] text-[#D4D4DC]'
                     }`}
                   >
                     <FlipHorizontal className="w-3.5 h-3.5" />
@@ -589,10 +684,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                             key={m.id}
                             type="button"
                             onClick={() => onUpdateParams({...bp, activeMode: m.id})}
-                            className={`py-1.5 px-2 text-xs font-medium rounded border cursor-pointer flex items-center justify-center gap-1.5 ${
+                            className={`py-2 px-2 text-xs font-medium rounded-lg border cursor-pointer flex items-center justify-center gap-1.5 ${
                               bp.activeMode === m.id
                                 ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                                : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                                : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                             }`}
                           >
                             {m.id === 'eraser' && <Eraser className="w-3 h-3" />}
@@ -613,10 +708,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                               key={val}
                               type="button"
                               onClick={() => onUpdateParams({...bp, activeStrength: val})}
-                              className={`py-1.5 text-xs font-mono rounded border cursor-pointer ${
+                              className={`py-1.5 text-xs font-mono rounded-lg border cursor-pointer ${
                                 bp.activeStrength === val
                                   ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                                  : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                                  : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                               }`}
                             >
                               {val > 0 ? `+${val}` : val}
@@ -649,7 +744,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
               (() => {
                 const hp = activeStep.params as HealingParams;
                 return (
-                  <div className="bg-[#141418] border border-[#222228] rounded-md p-3 space-y-2">
+                  <div className="bg-[#14141B] border border-white/[0.07] rounded-xl p-3 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-[#A1A1AA]">Healed Spots</span>
                       <span className="font-mono tabular-nums text-[#F4F4F6]">
@@ -660,7 +755,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                       <button
                         type="button"
                         onClick={() => onUpdateParams({...hp, spots: []})}
-                        className="w-full py-1.5 text-xs font-medium text-[#EF4444] bg-[#1C1618] border border-[#3B2326] rounded cursor-pointer"
+                        className="w-full py-1.5 text-xs font-medium text-[#EF4444] bg-[#1C1618] border border-[#3B2326] rounded-lg cursor-pointer"
                       >
                         Clear All Healing Spots
                       </button>
@@ -674,7 +769,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
               (() => {
                 const rp = activeStep.params as RemoverParams;
                 return (
-                  <div className="bg-[#141418] border border-[#222228] rounded-md p-3 space-y-2.5">
+                  <div className="bg-[#14141B] border border-white/[0.07] rounded-xl p-3 space-y-2.5">
                     <p className="text-xs text-[#A1A1AA] leading-relaxed">
                       Paint over any unwanted object, pole, wire, or watermark directly on the photo to seamlessly inpaint &amp; remove it.
                     </p>
@@ -688,7 +783,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                       <button
                         type="button"
                         onClick={() => onUpdateParams({...rp, regions: []})}
-                        className="w-full py-1.5 text-xs font-medium text-[#EF4444] bg-[#1C1618] border border-[#3B2326] rounded cursor-pointer"
+                        className="w-full py-1.5 text-xs font-medium text-[#EF4444] bg-[#1C1618] border border-[#3B2326] rounded-lg cursor-pointer"
                       >
                         Restore All Removed Regions
                       </button>
@@ -712,10 +807,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                           key={sc}
                           type="button"
                           onClick={() => onUpdateParams({...ep, upscale: sc})}
-                          className={`py-1.5 px-2 text-xs font-medium rounded border cursor-pointer ${
+                          className={`py-2 px-2 text-xs font-medium rounded-lg border cursor-pointer ${
                             ep.upscale === sc
                               ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                              : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                              : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                           }`}
                         >
                           {sc === '1x' ? '1x Original Size' : '2x HD Upscale'}
@@ -743,10 +838,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         key={sh}
                         type="button"
                         onClick={() => onUpdateParams({...lb, shape: sh})}
-                        className={`py-1.5 text-xs font-medium rounded border capitalize cursor-pointer ${
+                        className={`py-2 text-xs font-medium rounded-lg border capitalize cursor-pointer ${
                           lb.shape === sh
                             ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                            : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                            : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                         }`}
                       >
                         {sh}
@@ -771,10 +866,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         key={st.id}
                         type="button"
                         onClick={() => onUpdateParams({...hdr, style: st.id})}
-                        className={`py-1.5 text-xs font-medium rounded border cursor-pointer ${
+                        className={`py-2 text-xs font-medium rounded-lg border cursor-pointer ${
                           hdr.style === st.id
                             ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                            : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                            : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                         }`}
                       >
                         {st.label}
@@ -799,10 +894,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         key={st.id}
                         type="button"
                         onClick={() => onUpdateParams({...vig, style: st.id})}
-                        className={`py-1.5 px-2 text-xs font-medium rounded border transition-colors cursor-pointer ${
+                        className={`py-2 px-2 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
                           vig.style === st.id
                             ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                            : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC] hover:bg-[#1F1F26]'
+                            : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC] hover:bg-[#1E1E27]'
                         }`}
                       >
                         {st.label}
@@ -827,10 +922,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         key={st.id}
                         type="button"
                         onClick={() => onUpdateParams({...rx, style: st.id})}
-                        className={`py-1.5 px-2 text-xs font-medium rounded border cursor-pointer ${
+                        className={`py-2 px-2 text-xs font-medium rounded-lg border cursor-pointer ${
                           rx.style === st.id
                             ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                            : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                            : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                         }`}
                       >
                         {st.label}
@@ -855,10 +950,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         key={st.id}
                         type="button"
                         onClick={() => onUpdateParams({...np, style: st.id})}
-                        className={`py-1.5 px-2 text-xs font-medium rounded border cursor-pointer ${
+                        className={`py-2 px-2 text-xs font-medium rounded-lg border cursor-pointer ${
                           np.style === st.id
                             ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                            : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                            : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                         }`}
                       >
                         {st.label}
@@ -883,10 +978,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         key={f.id}
                         type="button"
                         onClick={() => onUpdateParams({...bw, filter: f.id})}
-                        className={`py-1.5 px-2 text-xs font-medium rounded border transition-colors cursor-pointer ${
+                        className={`py-2 px-2 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
                           bw.filter === f.id
                             ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                            : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC] hover:bg-[#1F1F26]'
+                            : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC] hover:bg-[#1E1E27]'
                         }`}
                       >
                         {f.label}
@@ -913,10 +1008,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                             key={sp.id}
                             type="button"
                             onClick={() => onUpdateParams({...de, overlaySrc: sp.src})}
-                            className={`aspect-square rounded overflow-hidden border cursor-pointer ${
+                            className={`aspect-square rounded-lg overflow-hidden border cursor-pointer ${
                               de.overlaySrc === sp.src
                                 ? 'border-[#22C55E]'
-                                : 'border-[#26262E] opacity-75'
+                                : 'border-white/[0.08] opacity-75'
                             }`}
                           >
                             <img
@@ -927,7 +1022,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                             />
                           </button>
                         ))}
-                        <label className="aspect-square rounded border border-dashed border-[#3A3A44] flex flex-col items-center justify-center text-[#A1A1AA] hover:text-white cursor-pointer">
+                        <label className="aspect-square rounded-lg border border-dashed border-white/[0.2] flex flex-col items-center justify-center text-[#A1A1AA] hover:text-white cursor-pointer">
                           <Upload className="w-3.5 h-3.5" />
                           <span className="text-[10px] mt-0.5">File</span>
                           <input
@@ -956,10 +1051,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                             key={bm.id}
                             type="button"
                             onClick={() => onUpdateParams({...de, blendMode: bm.id})}
-                            className={`py-1.5 text-xs font-medium rounded border cursor-pointer ${
+                            className={`py-2 text-xs font-medium rounded-lg border cursor-pointer ${
                               de.blendMode === bm.id
                                 ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                                : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                                : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                             }`}
                           >
                             {bm.label}
@@ -986,7 +1081,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         value={tp.content}
                         onChange={(e) => onUpdateParams({...tp, content: e.target.value})}
                         placeholder="Enter caption..."
-                        className="w-full px-3 py-2 text-xs bg-[#141418] border border-[#26262E] rounded text-[#F4F4F6] focus:outline-none focus:border-[#22C55E]"
+                        className="w-full px-3 py-2 text-xs bg-[#14141B] border border-white/[0.08] rounded-xl text-[#F4F4F6] focus:outline-none focus:border-[#22C55E]"
                       />
                     </div>
 
@@ -1000,10 +1095,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                             key={ts.id}
                             type="button"
                             onClick={() => onUpdateParams({...tp, style: ts.id})}
-                            className={`py-1.5 text-xs font-medium rounded border cursor-pointer ${
+                            className={`py-2 text-xs font-medium rounded-lg border cursor-pointer ${
                               tp.style === ts.id
                                 ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                                : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                                : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                             }`}
                           >
                             {ts.label}
@@ -1024,7 +1119,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                             onClick={() => onUpdateParams({...tp, color: c})}
                             style={{backgroundColor: c}}
                             className={`w-6 h-6 rounded-full border-2 cursor-pointer ${
-                              tp.color === c ? 'border-[#22C55E] scale-110' : 'border-[#2C2C34]'
+                              tp.color === c ? 'border-[#22C55E] scale-110' : 'border-white/20'
                             }`}
                           />
                         ))}
@@ -1048,10 +1143,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                         key={fr.id}
                         type="button"
                         onClick={() => onUpdateParams({...fp, style: fr.id})}
-                        className={`py-1.5 px-2 text-xs font-medium rounded border transition-colors cursor-pointer ${
+                        className={`py-2 px-2 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
                           fp.style === fr.id
                             ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                            : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC] hover:bg-[#1F1F26]'
+                            : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC] hover:bg-[#1E1E27]'
                         }`}
                       >
                         {fr.label}
@@ -1088,10 +1183,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                           type="button"
                           onClick={onToggleMaskOverlay}
                           title="Show Rubylith Mask Overlay"
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded border cursor-pointer ${
+                          className={`inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-lg border cursor-pointer ${
                             showMaskOverlay
                               ? 'bg-[#EF4444]/20 border-[#EF4444] text-[#EF4444]'
-                              : 'bg-[#18181D] border-[#26262E] text-[#A1A1AA]'
+                              : 'bg-[#15151C] border-white/[0.08] text-[#A1A1AA]'
                           }`}
                         >
                           <Eye className="w-3 h-3" />
@@ -1120,10 +1215,10 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
                           key={pt.id}
                           type="button"
                           onClick={() => onUpdateParams({...sel, activePointId: pt.id})}
-                          className={`px-2.5 py-1 text-xs font-mono rounded border cursor-pointer ${
+                          className={`px-2.5 py-1 text-xs font-mono rounded-lg border cursor-pointer ${
                             pt.id === activePt.id
                               ? 'bg-[#22C55E]/15 border-[#22C55E] text-[#22C55E]'
-                              : 'bg-[#16161B] border-[#26262E] text-[#D4D4DC]'
+                              : 'bg-[#15151C] border-white/[0.08] text-[#D4D4DC]'
                           }`}
                         >
                           Point {i + 1}
@@ -1182,7 +1277,7 @@ export const ToolInspector: React.FC<ToolInspectorProps> = ({
               </div>
             )}
 
-            <p className="text-[11px] text-[#52525B] pt-1">
+            <p className="text-[11px] text-[#5E5E6A] pt-1">
               Tip: Double-click any parameter label to reset it to default.
             </p>
           </>

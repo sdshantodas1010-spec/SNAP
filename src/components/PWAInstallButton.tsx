@@ -16,7 +16,7 @@ export const PWAInstallButton: React.FC = () => {
         type="button"
         onClick={install}
         title="Install Chitro Darkroom as an offline app"
-        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#18181D] hover:bg-[#23232A] text-[#F4F4F6] border border-[#2C2C34] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]"
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#15151C] hover:bg-[#1E1E27] text-[#F4F4F6] border border-white/[0.08] rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]"
       >
         <Download className="w-3.5 h-3.5 text-[#22C55E]" />
         <span>Install App</span>
@@ -30,7 +30,7 @@ export const PWAInstallButton: React.FC = () => {
         <button
           type="button"
           onClick={() => setShowIOSGuide(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#18181D] hover:bg-[#23232A] text-[#F4F4F6] border border-[#2C2C34] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]"
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#15151C] hover:bg-[#1E1E27] text-[#F4F4F6] border border-white/[0.08] rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22C55E]"
         >
           <Smartphone className="w-3.5 h-3.5 text-[#22C55E]" />
           <span>Install</span>

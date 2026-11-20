@@ -69,12 +69,12 @@ export const ProSlider: React.FC<ProSliderProps> = ({
 
   const trackBgClass =
     gradientTrack === 'temperature'
-      ? 'bg-gradient-to-r from-[#3B82F6]/45 via-[#27272E] to-[#F59E0B]/55'
+      ? 'bg-gradient-to-r from-[#3B82F6]/55 via-[#23232C] to-[#F59E0B]/65'
       : gradientTrack === 'tint'
-      ? 'bg-gradient-to-r from-[#22C55E]/45 via-[#27272E] to-[#EC4899]/45'
+      ? 'bg-gradient-to-r from-[#22C55E]/55 via-[#23232C] to-[#EC4899]/55'
       : gradientTrack === 'saturation'
-      ? 'bg-gradient-to-r from-[#52525B] via-[#27272E] to-[#22C55E]/50'
-      : 'bg-[#23232A]';
+      ? 'bg-gradient-to-r from-[#52525B] via-[#23232C] to-[#22C55E]/60'
+      : 'bg-[#212129]';
 
   const fillLeft = isBipolar ? Math.min(pct, zeroPct) : 0;
   const fillWidth = isBipolar ? Math.abs(pct - zeroPct) : pct;
@@ -84,17 +84,19 @@ export const ProSlider: React.FC<ProSliderProps> = ({
   return (
     <div
       onClick={onFocus}
-      className={`rounded-md px-2.5 py-2 transition-colors ${
-        isFocused ? 'bg-[#17171D]' : 'hover:bg-[#131318]'
+      className={`rounded-xl px-3 py-2 transition-colors border ${
+        isFocused
+          ? 'bg-[#17171F] border-white/[0.08]'
+          : 'bg-transparent border-transparent hover:bg-[#14141B]'
       }`}
     >
-      <div className="flex items-center justify-between mb-2 select-none">
+      <div className="flex items-center justify-between mb-1.5 select-none">
         <button
           type="button"
           onDoubleClick={() => onChange(resetVal)}
           title="Double-click to reset"
           className={`text-xs font-medium text-left cursor-pointer transition-colors ${
-            isFocused ? 'text-[#22C55E]' : 'text-[#D4D4DC] hover:text-white'
+            isFocused ? 'text-[#22C55E]' : 'text-[#E4E4EA] hover:text-white'
           }`}
         >
           {label}
@@ -103,15 +105,17 @@ export const ProSlider: React.FC<ProSliderProps> = ({
           type="button"
           onDoubleClick={() => onChange(resetVal)}
           title="Double-click to reset"
-          className={`text-xs font-mono tabular-nums cursor-pointer ${
-            clamped !== resetVal ? 'text-[#F4F4F6]' : 'text-[#71717A]'
+          className={`text-xs font-mono tabular-nums cursor-pointer px-1.5 py-0.5 rounded ${
+            clamped !== resetVal
+              ? 'text-[#F4F4F6] bg-white/[0.05]'
+              : 'text-[#71717A]'
           }`}
         >
           {isBipolar && clamped > 0 ? `+${clamped}` : clamped}
         </button>
       </div>
 
-      {/* Custom Precision Track */}
+      {/* Custom Precision Track (44px touch height via h-7 + padding) */}
       <div
         ref={trackRef}
         role="slider"
@@ -132,9 +136,9 @@ export const ProSlider: React.FC<ProSliderProps> = ({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className="relative h-5 flex items-center cursor-ew-resize touch-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#22C55E] rounded"
+        className="relative h-7 flex items-center cursor-ew-resize touch-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#22C55E] rounded-md"
       >
-        <div className={`relative w-full h-[4px] rounded-full overflow-hidden ${trackBgClass}`}>
+        <div className={`relative w-full h-[5px] rounded-full overflow-hidden ${trackBgClass}`}>
           {gradientTrack === 'none' && (
             <div
               style={{left: `${fillLeft}%`, width: `${fillWidth}%`}}
@@ -144,17 +148,17 @@ export const ProSlider: React.FC<ProSliderProps> = ({
           {isBipolar && (
             <div
               style={{left: `${zeroPct}%`}}
-              className="absolute top-0 bottom-0 w-[1px] bg-white/35 -translate-x-1/2"
+              className="absolute top-0 bottom-0 w-[1.5px] bg-white/40 -translate-x-1/2"
             />
           )}
         </div>
 
-        {/* Thumb */}
+        {/* Machined Thumb */}
         <div
           style={{left: `${pct}%`}}
-          className={`absolute -translate-x-1/2 w-3.5 h-3.5 rounded-full border-2 shadow-md transition-transform ${
+          className={`absolute -translate-x-1/2 w-4 h-4 rounded-full border-2 shadow-[0_2px_8px_rgba(0,0,0,0.75)] transition-transform ${
             isFocused
-              ? 'bg-white border-[#22C55E] scale-110'
+              ? 'bg-white border-[#22C55E] scale-110 ring-2 ring-[#22C55E]/25'
               : 'bg-[#E4E4E7] border-[#22C55E]'
           }`}
         />

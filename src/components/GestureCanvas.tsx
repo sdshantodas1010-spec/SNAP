@@ -13,6 +13,8 @@ import {
   Undo,
   Redo,
   AlertTriangle,
+  Info,
+  X,
 } from 'lucide-react';
 import {getAspectRatioValue} from '../engine/imageProcessor';
 import {
@@ -20,7 +22,9 @@ import {
   CropParams,
   DoubleExposureParams,
   EditStackStep,
+  ExifMetadata,
   HealingParams,
+  HistogramData,
   LensBlurParams,
   MaskStroke,
   ParameterDescriptor,
@@ -31,6 +35,7 @@ import {
   VignetteParams,
   WhiteBalanceParams,
 } from '../types/editor';
+import {HistogramPanel} from './HistogramPanel';
 
 interface GestureCanvasProps {
   processedCanvas: HTMLCanvasElement | null;
@@ -56,6 +61,11 @@ interface GestureCanvasProps {
   onUndo: () => void;
   onRedo: () => void;
   onInteractionStateChange?: (interacting: boolean) => void;
+  histogram: HistogramData;
+  imageWidth: number;
+  imageHeight: number;
+  exif: ExifMetadata;
+  mobileInspectorExpanded?: boolean;
 }
 
 type CropHandle = 'tl' | 'tr' | 'bl' | 'br' | 'move';
@@ -84,6 +94,11 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
   onUndo,
   onRedo,
   onInteractionStateChange,
+  histogram,
+  imageWidth,
+  imageHeight,
+  exif,
+  mobileInspectorExpanded = true,
 }) => {
   const displayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
@@ -93,6 +108,7 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
   const [splitPos, setSplitPos] = useState(0.5);
   const [isDraggingSplit, setIsDraggingSplit] = useState(false);
   const [isDragOverFile, setIsDragOverFile] = useState(false);
+  const [showInfoPopover, setShowInfoPopover] = useState(false);
 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<{x: number; y: number}>({x: 0, y: 0});
@@ -945,12 +961,12 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
           onUploadFile(file);
         }
       }}
-      className="relative flex-1 flex flex-col items-center justify-center bg-[#070709] overflow-hidden p-2 sm:p-4 md:p-8 select-none touch-none min-h-[240px]"
+      className="relative flex-1 flex flex-col items-center justify-center bg-[#060608] overflow-hidden px-3 pt-14 pb-2 sm:p-6 md:p-8 select-none touch-none min-h-[220px]"
     >
-      {/* Top Stage Utility Bar */}
-      <div className="absolute top-2.5 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-1.5 pointer-events-none">
-        <div className="pointer-events-auto flex items-center gap-1">
-          <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[#D4D4DC] bg-[#141418]/95 hover:bg-[#1E1E24] border border-[#26262E] rounded-md cursor-pointer transition-colors whitespace-nowrap">
+      {/* Top Stage Utility Bar (Translucent Obsidian Glass) */}
+      <div className="absolute top-2.5 left-2.5 right-2.5 sm:left-4 sm:right-4 z-20 flex flex-wrap items-center justify-between gap-1.5 pointer-events-none">
+        <div className="pointer-events-auto flex items-center gap-1 bg-[#121218]/88 backdrop-blur-xl border border-white/[0.08] rounded-xl p-1 shadow-xl">
+          <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[#E4E4EA] hover:bg-white/[0.07] rounded-lg cursor-pointer transition-colors whitespace-nowrap">
             <Upload className="w-3.5 h-3.5 text-[#22C55E]" />
             <span>Open</span>
             <input
@@ -970,7 +986,7 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
             onClick={onUndo}
             disabled={!canUndo}
             title="Undo (Ctrl+Z)"
-            className="p-1.5 text-[#D4D4DC] bg-[#141418]/95 hover:bg-[#1E1E24] border border-[#26262E] rounded-md disabled:opacity-35 cursor-pointer"
+            className="p-1.5 text-[#D4D4DC] hover:bg-white/[0.07] rounded-lg disabled:opacity-30 cursor-pointer transition-colors"
           >
             <Undo className="w-3.5 h-3.5" />
           </button>
@@ -979,7 +995,7 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
             onClick={onRedo}
             disabled={!canRedo}
             title="Redo (Ctrl+Shift+Z)"
-            className="p-1.5 text-[#D4D4DC] bg-[#141418]/95 hover:bg-[#1E1E24] border border-[#26262E] rounded-md disabled:opacity-35 cursor-pointer"
+            className="p-1.5 text-[#D4D4DC] hover:bg-white/[0.07] rounded-lg disabled:opacity-30 cursor-pointer transition-colors"
           >
             <Redo className="w-3.5 h-3.5" />
           </button>
@@ -988,7 +1004,7 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
             <button
               type="button"
               onClick={handleAddSelectivePoint}
-              className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-[#D4D4DC] bg-[#141418]/95 hover:bg-[#1E1E24] border border-[#26262E] rounded-md cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-[#E4E4EA] hover:bg-white/[0.07] rounded-lg cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5 text-[#22C55E]" />
               <span>Add Point</span>
@@ -1003,7 +1019,7 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
                   const hp = activeStep.params as HealingParams;
                   onUpdateStepParams({...hp, spots: hp.spots.slice(0, -1)});
                 }}
-                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-[#D4D4DC] bg-[#141418]/95 hover:bg-[#1E1E24] border border-[#26262E] rounded-md cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-[#E4E4EA] hover:bg-white/[0.07] rounded-lg cursor-pointer whitespace-nowrap"
               >
                 <Undo2 className="w-3.5 h-3.5 text-[#22C55E]" />
                 <span>Undo Spot</span>
@@ -1018,7 +1034,7 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
                   const rp = activeStep.params as RemoverParams;
                   onUpdateStepParams({...rp, regions: rp.regions.slice(0, -1)});
                 }}
-                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-[#D4D4DC] bg-[#141418]/95 hover:bg-[#1E1E24] border border-[#26262E] rounded-md cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-[#E4E4EA] hover:bg-white/[0.07] rounded-lg cursor-pointer whitespace-nowrap"
               >
                 <Undo2 className="w-3.5 h-3.5 text-[#A855F7]" />
                 <span>Undo Region</span>
@@ -1026,10 +1042,10 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
             )}
         </div>
 
-        {/* Eyedropper RGB Readout + Clipping + Zoom + Compare Controls */}
-        <div className="pointer-events-auto flex items-center gap-1.5">
+        {/* Eyedropper RGB + Info + Clipping + Zoom + Compare Controls */}
+        <div className="pointer-events-auto flex items-center gap-1 bg-[#121218]/88 backdrop-blur-xl border border-white/[0.08] rounded-xl p-1 shadow-xl">
           {isEyedropper && hoverRgb && (
-            <div className="hidden md:flex items-center gap-2 px-2.5 py-1 bg-[#141418]/95 border border-[#26262E] rounded-md text-[11px] font-mono tabular-nums text-[#D4D4DC]">
+            <div className="hidden md:flex items-center gap-2 px-2 py-1 text-[11px] font-mono tabular-nums text-[#D4D4DC]">
               <span
                 className="w-2.5 h-2.5 rounded-xs border border-white/25"
                 style={{backgroundColor: `rgb(${hoverRgb.r},${hoverRgb.g},${hoverRgb.b})`}}
@@ -1042,23 +1058,36 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
 
           <button
             type="button"
+            onClick={() => setShowInfoPopover((v) => !v)}
+            title="Photo Histogram & EXIF Info"
+            className={`lg:hidden p-1.5 rounded-lg transition-colors cursor-pointer ${
+              showInfoPopover
+                ? 'bg-[#22C55E]/20 text-[#22C55E]'
+                : 'text-[#A1A1AA] hover:text-white hover:bg-white/[0.07]'
+            }`}
+          >
+            <Info className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
             onClick={onToggleClippingOverlay}
             title="Show Shadow/Highlight Clipping Zebra (J)"
-            className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
               showClippingOverlay
-                ? 'bg-[#EF4444]/20 border-[#EF4444] text-[#FCA5A5]'
-                : 'bg-[#141418]/95 border-[#26262E] text-[#A1A1AA] hover:text-white'
+                ? 'bg-[#EF4444]/20 text-[#FCA5A5]'
+                : 'text-[#A1A1AA] hover:text-white hover:bg-white/[0.07]'
             }`}
           >
             <AlertTriangle className="w-3.5 h-3.5" />
           </button>
 
-          <div className="flex items-center bg-[#141418]/95 border border-[#26262E] rounded-md overflow-hidden">
+          <div className="flex items-center border-l border-white/[0.07] pl-1">
             <button
               type="button"
               onClick={() => setPanToolActive((v) => !v)}
               title="Pan image"
-              className={`p-1.5 transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                 panToolActive ? 'bg-[#22C55E] text-[#051B0C]' : 'text-[#A1A1AA] hover:text-white'
               }`}
             >
@@ -1097,7 +1126,7 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
                 setPanToolActive(false);
               }}
               title="Fit to screen (0)"
-              className="p-1.5 text-[#A1A1AA] hover:text-white border-l border-[#26262E] cursor-pointer"
+              className="p-1.5 text-[#A1A1AA] hover:text-white cursor-pointer"
             >
               <Maximize className="w-3.5 h-3.5" />
             </button>
@@ -1106,10 +1135,10 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
           <button
             type="button"
             onClick={() => setSplitMode((v) => !v)}
-            className={`inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+            className={`inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
               splitMode
-                ? 'bg-[#22C55E]/15 border-[#22C55E]/50 text-[#22C55E]'
-                : 'bg-[#141418]/95 border-[#26262E] text-[#D4D4DC] hover:bg-[#1E1E24]'
+                ? 'bg-[#22C55E]/15 text-[#22C55E]'
+                : 'text-[#D4D4DC] hover:bg-white/[0.07]'
             }`}
           >
             <SplitSquareHorizontal className="w-3.5 h-3.5" />
@@ -1122,10 +1151,10 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
             onPointerUp={() => setIsComparing(false)}
             onPointerLeave={() => setIsComparing(false)}
             title="Hold to view original photo (or hold \ key)"
-            className={`inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+            className={`inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
               isComparing
-                ? 'bg-[#22C55E] border-[#22C55E] text-[#051B0C]'
-                : 'bg-[#141418]/95 border-[#26262E] text-[#D4D4DC] hover:bg-[#1E1E24]'
+                ? 'bg-[#22C55E] text-[#051B0C]'
+                : 'text-[#D4D4DC] hover:bg-white/[0.07]'
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
@@ -1134,10 +1163,37 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
         </div>
       </div>
 
+      {/* Mobile Floating Info / Histogram Popover */}
+      {showInfoPopover && (
+        <div className="lg:hidden absolute top-14 right-3 z-30 w-72 bg-[#121218]/96 backdrop-blur-xl border border-white/[0.1] rounded-2xl p-3.5 shadow-2xl">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-display text-xs font-semibold text-[#F4F4F6]">
+              Photo Telemetry
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowInfoPopover(false)}
+              className="p-1 text-[#8E8E98] hover:text-white cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <HistogramPanel
+            histogram={histogram}
+            width={imageWidth}
+            height={imageHeight}
+            exif={exif}
+            showClippingOverlay={showClippingOverlay}
+            onToggleClippingOverlay={onToggleClippingOverlay}
+            compact
+          />
+        </div>
+      )}
+
       {/* Snapseed Floating Gesture HUD */}
       {gestureHud.visible && (
         <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-          <div className="bg-[#121216]/95 border border-[#2C2C34] rounded-md px-4 py-2 shadow-xl flex items-center gap-4 min-w-[210px] justify-between">
+          <div className="bg-[#121218]/95 backdrop-blur-xl border border-white/[0.1] rounded-xl px-4 py-2 shadow-2xl flex items-center gap-4 min-w-[210px] justify-between">
             <span className="text-xs font-medium text-[#E4E4E7] whitespace-nowrap">
               {gestureHud.label}
             </span>
@@ -1146,11 +1202,11 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
             </span>
           </div>
           {gestureHud.mode === 'vertical' && activeParameters.length > 1 && (
-            <div className="mt-1.5 bg-[#121216]/95 border border-[#2C2C34] rounded-md py-1 px-2 flex flex-col gap-0.5">
+            <div className="mt-1.5 bg-[#121218]/95 backdrop-blur-xl border border-white/[0.1] rounded-xl py-1.5 px-2 flex flex-col gap-0.5">
               {activeParameters.map((p) => (
                 <div
                   key={p.key}
-                  className={`text-[11px] px-2 py-0.5 rounded ${
+                  className={`text-[11px] px-2 py-0.5 rounded-lg ${
                     p.key === selectedParamKey
                       ? 'bg-[#22C55E]/20 text-[#22C55E] font-medium'
                       : 'text-[#8E8E98]'
@@ -1177,7 +1233,9 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
           onPointerMove={handleCanvasPointerMove}
           onPointerUp={handleCanvasPointerUp}
           onPointerLeave={() => setHoverRgb(null)}
-          className={`max-w-full max-h-[38vh] lg:max-h-[calc(100vh-14.5rem)] w-auto h-auto object-contain rounded-sm shadow-[0_20px_60px_rgba(0,0,0,0.85)] ring-1 ring-white/10 touch-none ${canvasCursor}`}
+          className={`max-w-full ${
+            mobileInspectorExpanded ? 'max-h-[42vh]' : 'max-h-[62vh]'
+          } lg:max-h-[calc(100vh-13rem)] w-auto h-auto object-contain rounded-sm shadow-[0_24px_80px_rgba(0,0,0,0.95)] ring-1 ring-white/[0.09] touch-none ${canvasCursor}`}
         />
 
         {/* Perspective Alignment Grid Overlay */}

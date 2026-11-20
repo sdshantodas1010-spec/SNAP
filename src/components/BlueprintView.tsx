@@ -61,8 +61,8 @@ const SECTIONS = [
 
 export const BlueprintView: React.FC = () => {
   return (
-    <div className="flex-1 overflow-y-auto darkroom-scroll p-6 md:p-10 max-w-[1040px] mx-auto w-full">
-      <div className="border-b border-[#222228] pb-6 mb-8">
+    <div className="flex-1 overflow-y-auto darkroom-scroll p-5 md:p-10 max-w-[1040px] mx-auto w-full">
+      <div className="border-b border-white/[0.07] pb-6 mb-8">
         <p className="text-xs font-medium text-[#22C55E] mb-2">
           Chitro Pro Architecture &amp; Build Guide
         </p>
@@ -70,8 +70,8 @@ export const BlueprintView: React.FC = () => {
           Snapseed-গ্রেড প্রো ডার্করুম আর্কিটেকচার ও ফিচার গাইড
         </h1>
         <p className="text-sm md:text-base text-[#A1A1AA] mt-2.5 max-w-2xl leading-relaxed">
-          এই প্রো স্টুডিওতে ২৬টি টুল, Web Worker ব্যাকগ্রাউন্ড রেন্ডারিং, .DNG RAW ডিকোডার, .cube 3D LUT,
-          Batch Export, QR Look Sharing, Pinch-to-Zoom এবং Clipping Warning যুক্ত করা হয়েছে।
+          এই প্রো স্টুডিওতে ২৮টি টুল, Web Worker ব্যাকগ্রাউন্ড রেন্ডারিং, .DNG RAW ডিকোডার, .cube 3D LUT,
+          Batch Export, QR Look Sharing, Pinch-to-Zoom, HD Enhance, Object Remover এবং Offline PWA যুক্ত করা হয়েছে।
         </p>
       </div>
 
@@ -79,7 +79,7 @@ export const BlueprintView: React.FC = () => {
         {SECTIONS.map((sec) => (
           <section
             key={sec.number}
-            className="border border-[#222228] bg-[#111115] rounded-lg p-6"
+            className="border border-white/[0.07] bg-[#111116] rounded-2xl p-6"
           >
             <div className="flex items-baseline gap-3 mb-2">
               <span className="font-mono text-sm font-medium text-[#22C55E]">
@@ -97,7 +97,7 @@ export const BlueprintView: React.FC = () => {
               {sec.points.map((pt) => (
                 <div
                   key={pt.label}
-                  className="bg-[#16161B] border border-[#23232A] rounded-md p-4"
+                  className="bg-[#16161E] border border-white/[0.06] rounded-xl p-4"
                 >
                   <h3 className="text-sm font-semibold text-[#F4F4F6] mb-1.5">
                     {pt.label}

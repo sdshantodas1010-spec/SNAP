@@ -195,8 +195,8 @@ export const EditStackView: React.FC<EditStackViewProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto darkroom-scroll p-6 md:p-8 max-w-[960px] mx-auto w-full">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#222228] pb-5 mb-6">
+    <div className="flex-1 overflow-y-auto darkroom-scroll p-5 md:p-8 max-w-[960px] mx-auto w-full">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.07] pb-5 mb-6">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight text-[#F4F4F6]">
             Non-Destructive Edit Stack
@@ -210,13 +210,13 @@ export const EditStackView: React.FC<EditStackViewProps> = ({
           <button
             type="button"
             onClick={() => setQrModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#18181D] hover:bg-[#23232A] text-[#E4E4E7] border border-[#2C2C34] rounded-md cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#15151C] hover:bg-[#1E1E27] text-[#E4E4E7] border border-white/[0.08] rounded-xl cursor-pointer whitespace-nowrap"
           >
             <QrCode className="w-3.5 h-3.5 text-[#22C55E]" />
             <span>QR Share / Paste Code</span>
           </button>
 
-          <label className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#18181D] hover:bg-[#23232A] text-[#E4E4E7] border border-[#2C2C34] rounded-md cursor-pointer whitespace-nowrap">
+          <label className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#15151C] hover:bg-[#1E1E27] text-[#E4E4E7] border border-white/[0.08] rounded-xl cursor-pointer whitespace-nowrap">
             <Upload className="w-3.5 h-3.5" />
             <span>Import JSON</span>
             <input
@@ -236,7 +236,7 @@ export const EditStackView: React.FC<EditStackViewProps> = ({
               <button
                 type="button"
                 onClick={handleExportRecipe}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#18181D] hover:bg-[#23232A] text-[#E4E4E7] border border-[#2C2C34] rounded-md cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#15151C] hover:bg-[#1E1E27] text-[#E4E4E7] border border-white/[0.08] rounded-xl cursor-pointer whitespace-nowrap"
               >
                 <Download className="w-3.5 h-3.5 text-[#22C55E]" />
                 <span>Export JSON</span>
@@ -244,7 +244,7 @@ export const EditStackView: React.FC<EditStackViewProps> = ({
               <button
                 type="button"
                 onClick={onRevertAll}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#18181D] hover:bg-[#23232A] text-[#E4E4E7] border border-[#2C2C34] rounded-md cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#15151C] hover:bg-[#1E1E27] text-[#E4E4E7] border border-white/[0.08] rounded-xl cursor-pointer whitespace-nowrap"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Revert All</span>
@@ -255,7 +255,7 @@ export const EditStackView: React.FC<EditStackViewProps> = ({
       </div>
 
       {stack.length === 0 ? (
-        <div className="border border-[#222228] bg-[#111115] rounded-lg p-10 text-center space-y-2">
+        <div className="border border-white/[0.07] bg-[#111116] rounded-2xl p-10 text-center space-y-2">
           <p className="font-display text-base font-semibold text-[#F4F4F6]">
             Original Negative Intact
           </p>
@@ -264,8 +264,8 @@ export const EditStackView: React.FC<EditStackViewProps> = ({
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-[#222228] bg-[#101014]">
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between px-4 py-3.5 rounded-2xl border border-white/[0.07] bg-[#101015]">
             <div className="flex items-center gap-3">
               <span className="text-xs font-mono tabular-nums text-[#71717A] w-6">00</span>
               <div>
@@ -285,10 +285,10 @@ export const EditStackView: React.FC<EditStackViewProps> = ({
             return (
               <div
                 key={step.id}
-                className={`flex flex-wrap sm:flex-nowrap items-center justify-between gap-4 px-4 py-3 rounded-lg border transition-colors ${
+                className={`flex flex-wrap sm:flex-nowrap items-center justify-between gap-4 px-4 py-3.5 rounded-2xl border transition-colors ${
                   isSelected
-                    ? 'border-[#22C55E] bg-[#151D18]'
-                    : 'border-[#222228] bg-[#141418] hover:border-[#32323B]'
+                    ? 'border-[#22C55E]/70 bg-[#141E18]'
+                    : 'border-white/[0.07] bg-[#13131A] hover:border-white/[0.14]'
                 } ${!step.enabled ? 'opacity-55' : ''}`}
               >
                 <div className="flex items-center gap-3 min-w-0">

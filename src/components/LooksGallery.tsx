@@ -107,11 +107,11 @@ export const LooksGallery: React.FC<LooksGalleryProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto darkroom-scroll p-6 md:p-8 max-w-[1200px] mx-auto w-full">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#222228] pb-5 mb-6">
+    <div className="flex-1 overflow-y-auto darkroom-scroll p-5 md:p-8 max-w-[1200px] mx-auto w-full">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.07] pb-5 mb-6">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight text-[#F4F4F6]">
-            Curated & Custom Looks
+            Curated &amp; Custom Looks
           </h1>
           <p className="text-sm text-[#8E8E98] mt-1">
             True pixel-accurate Look previews rendered through the darkroom engine. Click any Look to apply its edit stack.
@@ -123,7 +123,7 @@ export const LooksGallery: React.FC<LooksGalleryProps> = ({
             <button
               type="button"
               onClick={() => setIsSaving(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-[#18181D] hover:bg-[#23232A] text-[#F4F4F6] border border-[#2C2C34] rounded-md cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-[#15151C] hover:bg-[#1E1E27] text-[#F4F4F6] border border-white/[0.08] rounded-xl cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5 text-[#22C55E]" />
               <span>Save Current Stack as Look</span>
@@ -179,13 +179,13 @@ export const LooksGallery: React.FC<LooksGalleryProps> = ({
                   onApplyLook(look);
                 }
               }}
-              className={`group text-left rounded-lg overflow-hidden border transition-all cursor-pointer bg-[#121216] ${
+              className={`group text-left rounded-2xl overflow-hidden border transition-all cursor-pointer bg-[#121218] ${
                 isActive
                   ? 'border-[#22C55E] ring-1 ring-[#22C55E]'
-                  : 'border-[#222228] hover:border-[#3A3A44]'
+                  : 'border-white/[0.07] hover:border-white/[0.16]'
               }`}
             >
-              <div className="relative aspect-[4/3] bg-[#09090B] overflow-hidden">
+              <div className="relative aspect-[4/3] bg-[#08080B] overflow-hidden">
                 <img
                   src={thumbUrl}
                   alt={look.name}
@@ -197,7 +197,7 @@ export const LooksGallery: React.FC<LooksGalleryProps> = ({
                     type="button"
                     onClick={(e) => handleDeleteCustomLook(look.id, e)}
                     title="Delete custom look"
-                    className="absolute top-2 right-2 p-1.5 rounded bg-black/70 text-[#D4D4DC] hover:text-[#EF4444] cursor-pointer"
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/75 text-[#D4D4DC] hover:text-[#EF4444] cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

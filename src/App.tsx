@@ -4,6 +4,7 @@
  */
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Download, Layers, LayoutGrid, Sparkles} from 'lucide-react';
 import {BlueprintView} from './components/BlueprintView';
 import {EditStackView} from './components/EditStackView';
 import {ExportModal} from './components/ExportModal';
@@ -67,6 +68,8 @@ export default function App() {
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
   const [isInteracting, setIsInteracting] = useState<boolean>(false);
   const [showClippingOverlay, setShowClippingOverlay] = useState<boolean>(false);
+  const [isMobileToolsOpen, setIsMobileToolsOpen] = useState<boolean>(false);
+  const [mobileInspectorExpanded, setMobileInspectorExpanded] = useState<boolean>(true);
 
   // Per-layer mask brush state
   const [isMaskBrushMode, setIsMaskBrushMode] = useState<boolean>(false);
@@ -490,8 +493,10 @@ export default function App() {
     [commitStackChange]
   );
 
+  const activeLayerCount = editStack.filter((s) => s.enabled).length;
+
   return (
-    <div className="min-h-screen h-screen flex flex-col bg-[#0B0B0D] text-[#F4F4F6] overflow-hidden">
+    <div className="min-h-screen h-screen flex flex-col bg-[#060608] text-[#F4F4F6] overflow-hidden">
       <TopBar
         activeTab={activeTab}
         onSelectTab={setActiveTab}
@@ -505,8 +510,13 @@ export default function App() {
             activeToolId={activeStep?.toolId ?? null}
             appliedToolIds={appliedToolIds}
             activePhotoSrc={photoSrc}
-            onSelectTool={handleSelectTool}
+            onSelectTool={(toolId) => {
+              handleSelectTool(toolId);
+              setMobileInspectorExpanded(true);
+            }}
             onSelectSample={handleSelectSample}
+            isMobileSheetOpen={isMobileToolsOpen}
+            onCloseMobileSheet={() => setIsMobileToolsOpen(false)}
           />
 
           <GestureCanvas
@@ -533,6 +543,11 @@ export default function App() {
             onUndo={handleUndo}
             onRedo={handleRedo}
             onInteractionStateChange={setIsInteracting}
+            histogram={histogram}
+            imageWidth={imageDims.w}
+            imageHeight={imageDims.h}
+            exif={exif}
+            mobileInspectorExpanded={mobileInspectorExpanded}
           />
 
           <ToolInspector
@@ -563,6 +578,9 @@ export default function App() {
             onInvertLayerMask={handleInvertLayerMask}
             onClearLayerMask={handleClearLayerMask}
             onInteractionStateChange={setIsInteracting}
+            mobileExpanded={mobileInspectorExpanded}
+            onToggleMobileExpand={() => setMobileInspectorExpanded((v) => !v)}
+            onOpenMobileTools={() => setIsMobileToolsOpen(true)}
           />
         </main>
       )}
@@ -600,6 +618,66 @@ export default function App() {
         </main>
       )}
 
+      {/* Mobile Ergonomic Thumb Dock (Looks · Tools · Stack · Export) */}
+      <nav
+        aria-label="Mobile workspace actions"
+        className="md:hidden shrink-0 h-14 bg-[#0D0D12]/96 backdrop-blur-xl border-t border-white/[0.08] grid grid-cols-4 items-center px-1 pb-safe z-30"
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setIsMobileToolsOpen(false);
+            setActiveTab('looks');
+          }}
+          className={`h-full flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors cursor-pointer ${
+            activeTab === 'looks' ? 'text-[#22C55E]' : 'text-[#9E9EA9] hover:text-[#F4F4F6]'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Looks</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('darkroom');
+            setIsMobileToolsOpen((v) => !v);
+          }}
+          className={`h-full flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors cursor-pointer ${
+            activeTab === 'darkroom' ? 'text-[#22C55E]' : 'text-[#9E9EA9] hover:text-[#F4F4F6]'
+          }`}
+        >
+          <LayoutGrid className="w-4 h-4" />
+          <span>Tools</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setIsMobileToolsOpen(false);
+            setActiveTab('stack');
+          }}
+          className={`h-full flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors cursor-pointer ${
+            activeTab === 'stack' ? 'text-[#22C55E]' : 'text-[#9E9EA9] hover:text-[#F4F4F6]'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>
+            Stack{activeLayerCount > 0 ? ` (${activeLayerCount})` : ''}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsExportOpen(true)}
+          disabled={!sourceImage}
+          className="h-full flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-[#22C55E] disabled:opacity-40 cursor-pointer"
+        >
+          <Download className="w-4 h-4" />
+          <span>Export</span>
+        </button>
+      </nav>
+
       <ExportModal
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
@@ -608,7 +686,7 @@ export default function App() {
         overlayCache={overlayCacheRef.current}
         sourceWidth={imageDims.w}
         sourceHeight={imageDims.h}
-        stackCount={editStack.filter((s) => s.enabled).length}
+        stackCount={activeLayerCount}
       />
 
       <OfflineIndicator />

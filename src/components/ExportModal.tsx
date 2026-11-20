@@ -189,14 +189,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
       onClick={() => !isExporting && !isBatchRunning && onClose()}
     >
       <div
-        className="w-full max-w-lg bg-[#121216] border border-[#26262E] rounded-lg shadow-2xl overflow-hidden"
+        className="w-full max-w-lg bg-[#121218] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#222228]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
           <h2 className="font-display text-base font-semibold text-[#F4F4F6]">
             Darkroom Render &amp; Export
           </h2>
@@ -204,7 +204,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             type="button"
             onClick={onClose}
             disabled={isExporting || isBatchRunning}
-            className="p-1 text-[#8E8E98] hover:text-[#F4F4F6] rounded cursor-pointer disabled:opacity-40"
+            className="p-1.5 text-[#8E8E98] hover:text-[#F4F4F6] rounded-lg cursor-pointer disabled:opacity-40"
           >
             <X className="w-4 h-4" />
           </button>
@@ -212,12 +212,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
         {/* Mode Switcher */}
         <div className="px-5 pt-4">
-          <div className="grid grid-cols-2 gap-2 bg-[#0B0B0D] p-1 rounded-md border border-[#222228]">
+          <div className="grid grid-cols-2 gap-1.5 bg-[#09090D] p-1 rounded-xl border border-white/[0.07]">
             <button
               type="button"
               onClick={() => setMode('single')}
-              className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded cursor-pointer ${
-                mode === 'single' ? 'bg-[#1D1D23] text-[#F4F4F6]' : 'text-[#8E8E98]'
+              className={`flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg cursor-pointer ${
+                mode === 'single' ? 'bg-[#191922] text-[#F4F4F6]' : 'text-[#8E8E98]'
               }`}
             >
               <ImageIcon className="w-3.5 h-3.5 text-[#22C55E]" />
@@ -226,8 +226,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <button
               type="button"
               onClick={() => setMode('batch')}
-              className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded cursor-pointer ${
-                mode === 'batch' ? 'bg-[#1D1D23] text-[#F4F4F6]' : 'text-[#8E8E98]'
+              className={`flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg cursor-pointer ${
+                mode === 'batch' ? 'bg-[#191922] text-[#F4F4F6]' : 'text-[#8E8E98]'
               }`}
             >
               <Layers className="w-3.5 h-3.5 text-[#22C55E]" />
