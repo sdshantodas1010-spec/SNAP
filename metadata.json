@@ -1,0 +1,6 @@
+{
+  "name": "Chitro Darkroom",
+  "description": "Non-destructive photo editor inspired by Snapseed featuring gesture-driven tuning, edit stacks, tone curves, selective radial adjustments, and an engineering blueprint.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
